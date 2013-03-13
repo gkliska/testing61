@@ -93,6 +93,8 @@ Preduvjeti:
                    'certificate_view.xml',
                    'fiskalizacija_view.xml',
                    'company_view.xml',
+                   'security/ir.model.access.csv',
+                   'account_invoice_view.xml',
 
                    #'view/l10n_hr_fiskal_view.xml',
                    #'view/res_certificate_view.xml',

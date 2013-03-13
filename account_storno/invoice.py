@@ -43,7 +43,7 @@ class account_invoice(osv.osv):
     
 
     def line_get_convert(self, cr, uid, x, part, date, context=None):
-        res=super(account_invoice,self).line_get_convert(cr, uid, x, part, date, context=context)
+        res =super(account_invoice,self).line_get_convert(cr, uid, x, part, date, context=context)
         if context is None:
             context = {}
         invoice = context.get('brw_invoice',False)
@@ -64,53 +64,45 @@ class account_invoice(osv.osv):
             res['credit'] = credit
         return res
 
+    def inv_line_characteristic_hashcode(self, invoice, invoice_line):
+        """Overridable hashcode generation for invoice lines. Lines having the same hashcode
+        will be grouped together if the journal has the 'group line' option. Of course a module
+        can add fields to invoice lines that would need to be tested too before merging lines
+        or not."""
+        #return "%s-%s-%s-%s-%s"%(
+        #   invoice_line['account_id'],
+        #   invoice_line.get('tax_code_id',"False"),
+        #   invoice_line.get('product_id',"False"),
+        #   invoice_line.get('analytic_account_id',"False"),
+        #   invoice_line.get('date_maturity',"False"))
+        res = super(account_invoice,self).inv_line_characteristic_hashcode(invoice, invoice_line)
+        
 
     def group_lines(self, cr, uid, iml, line, inv):
         """Merge account move lines (and hence analytic lines) if invoice line hashcodes are equals"""
-            
         if inv.journal_id.group_invoice_lines:
             if inv.journal_id.posting_policy == 'contra':
-                #ORIGINAL START 
-                line2 = {}
-                for x, y, l in line:
-                    tmp = self.inv_line_characteristic_hashcode(inv, l)
-    
-                    if tmp in line2:
-                        am = line2[tmp]['debit'] - line2[tmp]['credit'] + (l['debit'] - l['credit'])
-                        line2[tmp]['debit'] = (am > 0) and am or 0.0
-                        line2[tmp]['credit'] = (am < 0) and -am or 0.0
-                        line2[tmp]['tax_amount'] += l['tax_amount']
-                        line2[tmp]['analytic_lines'] += l['analytic_lines']
-                    else:
-                        line2[tmp] = l
-                line = []
-                for key, val in line2.items():
-                    line.append((0,0,val))
-                #ORIGINAL end
+                return super(account_invoice,self).group_lines(cr, uid, iml, line, inv)
             if inv.journal_id.posting_policy == 'storno':
                 line2 = {}
                 for x, y, l in line:
-                    tmp = self.inv_line_characteristic_hashcode(inv, l)
-    
+                    hash = self.inv_line_characteristic_hashcode(inv, l)
+                    side = l['debit'] > 0 and 'debit' or 'credit'
+                    tmp = '-'.join((hash,side))
                     if tmp in line2:
                         line2[tmp]['debit'] += l['debit'] or 0.0
                         line2[tmp]['credit'] += l['credit'] or 0.00
                         line2[tmp]['tax_amount'] += l['tax_amount']
                         line2[tmp]['analytic_lines'] += l['analytic_lines']
+                        line2[tmp]['amount_currency'] += l['amount_currency']
+                        line2[tmp]['quantity'] += l['quantity']
                     else:
                         line2[tmp] = l
-
                 line = []
                 for key, val in line2.items():
-                    if val['credit'] != 0.0 :
-                        line.append((0,0,val))
-                        line[-1][2]['debit'] = 0.0
-                    if val['debit'] != 0.0 :
-                        line.append((0,0,val))
-                        line[-1][2]['credit'] = 0.0
-                    #if val['debit'] == 0.0 and val['credit'] == 0.0:
-                    #    line.append((0,0,val))
+                    line.append((0,0,val))
         return line
+
     
 """
 HISTORY

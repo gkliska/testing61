@@ -27,9 +27,9 @@
 import certificate
 import fiskalizacija
 import company
+import account_invoice
 
 #import res_certificate
-#import account_invoice
 #import zki_check
 #import TEST
 

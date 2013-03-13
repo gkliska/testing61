@@ -99,11 +99,13 @@ class fiskal_prostor(osv.Model):
         if not ( fina_cert.state=='confirmed' and fina_cert.csr and fina_cert.crt):
             return False, False, False
 
-        path = os.path.join(os.path.dirname(os.path.abspath(config.parser.values.config)),'oe_fiskal')
+        #radi ako je server pokrenut sa -c: path = os.path.join(os.path.dirname(os.path.abspath(config.parser.values.config)),'oe_fiskal')
+        path = os.path.join(os.path.dirname(os.path.abspath(config.rcfile)),'oe_fiskal')
         if not os.path.exists(path):
             os.mkdir(path,0777) #TODO 0660 or less
-        key_file = os.path.join(path, "{0}_{1}_key.pem".format(company_id, fina_cert.id) )         
-        cert_file= os.path.join(path, "{0}_{1}_crt.pem".format(company_id, fina_cert.id) )
+
+        key_file = os.path.join(path, "{0}_{1}_{2}_key.pem".format(cr.dbname, company_id, fina_cert.id) )         
+        cert_file= os.path.join(path, "{0}_{1}_{2}_crt.pem".format(cr.dbname, company_id, fina_cert.id) )
         
         for file in (key_file, cert_file):
             if not os.path.exists(file):
@@ -147,12 +149,10 @@ class fiskal_prostor(osv.Model):
 
     def button_test_prostor(self, cr, uid, ids, fields, context=None):
         
-        prostor=self.browse(cr,uid,ids)[0]
-        
+        prostor=self.browse(cr, uid, ids)[0]
         wsdl, cert, key = self.get_fiskal_data(cr, uid, company_id=prostor.company_id.id)
         if not wsdl:
             return False
-        
         a = Fiskalizacija()
         a.set_start_time()
         a.init('PoslovniProstor', wsdl, cert, key)
@@ -169,7 +169,7 @@ class fiskal_prostor(osv.Model):
         a.zaglavlje.IdPoruke = str(uuid.uuid1()) #moze i 4 
         ## podaci o pos prostoru
         a.pp = a.client2.factory.create('tns:PoslovniProstor') 
-        a.pp.Oib= prostor.company_id.partner_id.vat[2:] #'57699704120'
+        a.pp.Oib= prostor.company_id.partner_id.vat[2:] #'57699704120' Mora odgovarati OIB-u sa Cert-a
         a.pp.OznPoslProstora=prostor.oznaka_prostor
         a.pp.RadnoVrijeme=prostor.radno_vrijeme
         a.pp.DatumPocetkaPrimjene=datum_danas #'08.02.2013' #datum_danas   e ak ovo stavim baci gresku.. treba dodat raise ili nekaj!!!
@@ -181,7 +181,7 @@ class fiskal_prostor(osv.Model):
         
         adresa.Ulica= prostor.ulica  #'Diogneševa'
         if prostor.kbr:
-            adresa.KucniBroj='' #prostor.kbr  
+            adresa.KucniBroj=prostor.kbr  
         if prostor.kbr_dodatak:
             adresa.KucniBrojDodatak=prostor.kbr_dodatak
         
@@ -295,6 +295,38 @@ class fiskal_uredjaj(osv.Model):
         'prostor_id':fields.many2one('fiskal.prostor','Prostor',help='Prostor naplatnog uredjaja.'),
         'oznaka_uredjaj': fields.char('Oznaka naplatnog uredjaja', required="True", size=20),
                 }
+    
+class users(osv.osv):
+    _inherit = "res.users"
+    _columns = {
+        'OIB': fields.char('OIB osobe', size=11, help='OIB osobe koja potvrdjuje racune za potrebe fiskalizacije'),
+        ##7.0
+        #'OIB': fields.related('partner_id','vat', string='OIB osobe' ), # relation='res.partner'
+        ##'number': fields.related('move_id','name', type='char', readonly=True, size=64, relation='account.move', store=True, string='Number'),
+        
+        }
+
+class account_tax_code(osv.osv):
+    _inherit = 'account.tax.code'
+
+    def _get_fiskal_type(self,cursor,user_id, context=None):
+        return (('pdv','Pdv'),
+                ('pnp','Porez na potrosnju'),
+                ('ostali','Ostali porezi'),
+                ('oslobodenje','Oslobodjenje')
+                ('marza','Oporezivanje marze')
+                ('ne_podlijeze','Ne podlijeze oporezivanju')
+                ('naknade','Naknade (npr. ambalaza)')
+               )
+
+    _columns = {
+        'fiskal_percent': fields.char('Naziv naplatnog uredjaja', size=128 , select=1),
+        'fiskal_type':fields.selection(_get_fiskal_type, 'Vrsta poreza',help='Vrsta porezne grupe za potrebe fiskalizacije.'),
+        'oznaka_uredjaj': fields.char('Oznaka naplatnog uredjaja', required="True", size=20),
+                }
+
+
+    
 """ TODO
 class l10n_hr_log(osv.Model):
     _name='l10n.hr.log'

@@ -37,8 +37,11 @@ Contributions:
 Description:
  Enables storno accounting.
  Adds new field "Posting policy" with values Storno/Contra on the Journal. 
- For Storno journals refund invoices are done in the same journal with negative *(-1) quantities
+ For Storno journals refund invoices are done in the same journal with negative *(-1) quantities.
  Negative amounts are posted on the same side (debit or credit) as positive.
+ Countries where Storno accounting is mandatory or considered as best practice:
+     Czech Republic, Poland, Romania, Russia, Slovakia, Ukraine, Croatia, Bosnia and Herzegovina, Serbia, Romania, ...
+ 
 
 WARNING:
  This module is managing only invoices. 

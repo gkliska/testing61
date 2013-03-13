@@ -47,6 +47,13 @@ def _failed(self, binding, error):
 
 suds.client.SoapClient.failed = _failed
 
+from datetime import datetime
+from pytz import timezone
+
+def zagreb_now():
+    now_utc = datetime.now(timezone('UTC'))
+    now_utc.astimezone(timezone('Europe/Zagreb'))
+    now_zagreb= datetime.now(timezone('Europe/Zagreb'))
 
 class DodajPotpis(MessagePlugin):
     
@@ -187,11 +194,21 @@ class Fiskalizacija():
         return poruka_odgovor, poruka_zahtjev
         
     
-    def izracunaj_zastitni_kod(self, datumvrijeme):    
-        medjurezultat = self.racun.Oib + str(datumvrijeme) + str(self.racun.BrRac.BrOznRac) + self.racun.BrRac.OznPosPr + self.racun.BrRac.OznNapUr + str(self.racun.IznosUkupno)
+    def izracunaj_zastitni_kod(self):    
+        self.racun.ZastKod = self.get_zastitni_kod(self.racun.Oib,
+                                                  self.racun.DatVrijeme,
+                                                  str(self.racun.BrRac.BrOznRac),
+                                                  self.racun.BrRac.OznPosPr,
+                                                  self.racun.BrRac.OznNapUr,
+                                                  str(self.racun.IznosUkupno)
+                                                  )
+
+    def get_zastitni_kod(self, Oib, DatVrijeme, BrOznRac, OznPosPr, OznNapUr, IznosUkupno):    
+        medjurezultat = ''.join((Oib, DatVrijeme, BrOznRac, OznPosPr, OznNapUr, IznosUkupno)) 
         pkey = RSA.load_key(keyFile)
         signature = pkey.sign(hashlib.sha1(medjurezultat).digest())
-        self.racun.ZastKod = hashlib.md5(signature).hexdigest()
+        return hashlib.md5(signature).hexdigest()
+
 
     def posalji_racun(self):
         try:

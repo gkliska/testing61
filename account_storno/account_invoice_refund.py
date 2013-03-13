@@ -142,9 +142,9 @@ class account_invoice_refund(osv.osv_memory):
     }
     def _get_journal(self, cr, uid, context=None):
         obj_journal = self.pool.get('account.journal')
-        """
         if context is None:
             context = {}
+        """    
         journal = obj_journal.search(cr, uid, [('type', '=', 'sale_refund')])
         if context.get('type', False):
             if context['type'] in ('in_invoice', 'in_refund'):
