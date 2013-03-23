@@ -31,13 +31,14 @@ import uuid
 
 import pooler
 from fiskal import *
+import tools
 
 
 class account_invoice(osv.Model):
     _inherit = "account.invoice"
     _columns = {
                 'vrijeme_izdavanja': fields.datetime("Date", readonly=True),
-                'fiskal_user_id'   : fields.many2one('res.users', 'Fiskalizirao', help='Fiskalizacija. Osoba koja je portvrdila racun'),
+                'fiskal_user_id'   : fields.many2one('res.users', 'Fiskalizirao', help='Fiskalizacija. Osoba koja je potvrdila racun'),
                 'zki': fields.char('ZKI', size=64, readonly=True),
                 'jir': fields.char('JIR',size=64 , readonly=True),
                 'uredjaj_id':fields.many2one('fiskal.uredjaj', 'Naplatni uredjaj', help ="Naplatni uređaj na kojem se izdaje racun"),
@@ -55,27 +56,93 @@ class account_invoice(osv.Model):
                  #'pprostor_id':'1',
                  'nac_plac':'T' # TODO : postaviti u bazi pitanje kaj da bude default!
                  }
+
+    def copy(self, cr, uid, id, default=None, context=None):
+        default = default or {}
+        default.update({
+            'vrijeme_izdavanja':False,
+            'fiskal_user_id':False,
+            'zki':False,
+            'jir': False,
+            #'uredjaj_id': False,
+            #'prostor_id': False,
+            #'nac_plac': False,
+        })
+        return super(account_invoice, self).copy(cr, uid, id, default, context)
        
-    
     def button_fiscalize(self, cr, uid, ids, context=None):
         if context is None:
             context = {}
         for invoice in self.browse( cr, uid, ids, context):
             self.fiskaliziraj(cr, uid, invoice.id, context=context)
 
+    def get_fiskal_taxes(self, cr, uid, invoice, a, context=None):
+        res=[]
+        
+        def get_factory(val):
+            fiskal_type = val.get('fiskal_type',False) 
+            
+            if fiskal_type=='pdv':      tns = {'tns': (a.racun.Pdv.Porez , 'tns:Porez')     , 'fields': ('Stopa' ,'Osnovica', 'Iznos') }  
+            elif fiskal_type=='pnp':    tns = {'tns': (a.racun.Pnp.Porez , 'tns:Porez')     , 'fields': ('Stopa' ,'Osnovica', 'Iznos') }
+            elif fiskal_type=='ostali': tns = {'tns': (a.racun.OstaliPor.Porez, 'tns:Porez'), 'fields': ('Naziv','Stopa' ,'Osnovica', 'Iznos') }
+            elif fiskal_type=='naknade':tns = {'tns': (a.racun.Naknade, 'tns:Naknada'), 'fields': ('NazivN', 'IznosN') }
+
+            elif fiskal_type=='oslobodenje':  tns = {'tns': (a.racun.IznosOslobPdv),   'value': 'Osnovica' }
+            elif fiskal_type=='ne_podlijeze': tns = {'tns': (a.racun.IznosNePodlOpor), 'value': 'Osnovica' }
+            elif fiskal_type=='marza':        tns = {'tns': (a.racun.IznosMarza),      'value': 'Osnovica' }
+            else  :tns={}
+            place = tns.get('tns',False)
+            if not place:
+                return False
+            if len(place) > 1:      
+                porez = a.client2.factory.create(place[1])
+                place[0].append(porez)
+            else:    
+                porez = place[0]
+
+            if tns.get('fields',False):
+                for field in tns['fields']:
+                    porez[field] = val[field]
+                   
+            if tns.get('value',False):
+                tns['tns'][0] = val[field]
+
+            return tns
+        
+        for tax in invoice.tax_line:
+            if not tax.tax_code_id:
+                continue # TODO special cases without tax code, or with base tax code without tax if found
+            val={ 'tax_code': tax.tax_code_id.id,
+                  'fiskal_type': tax.tax_code_id.fiskal_type,
+                  'Naziv': tax.tax_code_id.name,
+                  'Stopa': tax.tax_code_id.fiskal_percent,
+                  'Osnovica': fiskal_num2str(tax.base_amount),
+                  'Iznos': fiskal_num2str(tax.tax_amount),
+                  'NazivN': tax.tax_code_id.name,
+                 }
+            res.append(val)
+            #TODO group and sum by fiskal_type and Stopa hmmm then send 1 by one into factory... 
+            get_factory(val)            
+        return res
+
+
     def fiskaliziraj(self, cr, uid, id, context=None):
         """ Fiskalizira jedan izlazni racun
         """
         if context is None:
             context = {}
-        
         prostor_obj= self.pool.get('fiskal.prostor')
                     
-        invoice= self.browse(cr, uid, [id], context=context)[0]
+        invoice= self.browse(cr, uid, [id])[0]
+        
         #tko pokusava fiskalizirati?
         if not invoice.fiskal_user_id:
             self.write(cr, uid, [id], {'fiskal_user_id':uid})
-            invoice= self.browse(cr, uid, [id], context=context)[0] #refresh
+
+        if not invoice.fiskal_user_id:
+            self.write(cr, uid, [id], {'fiskal_user_id':uid})
+            
+        invoice= self.browse(cr, uid, [id])[0] #refresh
 
         #TODO - posebna funkcija za provjeru npr. invoice_fiskal_valid()
         if not invoice.fiskal_user_id.OIB:
@@ -86,6 +153,7 @@ class account_invoice(osv.Model):
             return False
         a = Fiskalizacija()
         a.set_start_time()
+
         a.init('Racun', wsdl, cert, key)
         
         start_time=a.time_formated()
@@ -93,44 +161,40 @@ class account_invoice(osv.Model):
         a.zaglavlje.DatumVrijeme = start_time['datum_vrijeme'] #TODO UTC -> Europe/Zagreb 
         a.zaglavlje.IdPoruke = str(uuid.uuid4())
         
+        dat_vrijeme = invoice.vrijeme_izdavanja
+        if not dat_vrijeme:
+            dat_vrijeme = start_time['datum_vrijeme']
+            self.write(cr, uid, [id], {'vrijeme_izdavanja': start_time['time_stamp'].strftime(tools.DEFAULT_SERVER_DATETIME_FORMAT) })
+        
+        
         a.racun.Oib = invoice.company_id.partner_id.vat[2:]  # npr"57699704120" 
-        a.racun.DatVrijeme = invoice.vrijeme_izdavanja
+        a.racun.DatVrijeme = dat_vrijeme #invoice.vrijeme_izdavanja
         a.racun.OznSlijed = invoice.prostor_id.sljed_racuna #'P' ## sljed_racuna
 
         #dijelovi broja racuna
-        BrOznRac, OznPosPr, OznNapUr = invoice.number.rsplit('/',2)
+        BrojOznRac, OznPosPr, OznNapUr = invoice.number.rsplit('/',2)
+        BrOznRac =''
+        for b in ''.join([x for x in BrojOznRac[::-1]]): #reverse
+            if b.isdigit() :BrOznRac += b                #
+            else: break                                  #break on 1. non digit
+        BrOznRac = BrOznRac[::-1].lstrip('0')    #reverse again and strip leading zeros
+
         a.racun.BrRac.BrOznRac = BrOznRac
         a.racun.BrRac.OznPosPr = OznPosPr
         a.racun.BrRac.OznNapUr = OznNapUr
         
         a.racun.USustPdv = invoice.prostor_id.sustav_pdv and "true" or "false"
         if invoice.prostor_id.sustav_pdv:
-            for tax in invoice.taxes:            
-                a.porez = a.client2.factory.create('tns:Porez')
-                a.porez.Stopa = "25.00" #"25.00"
-                osnovica=str(invoice.amount_untaxed)
-                if osnovica[-2]==".":
-                    osnovica=osnovica+"0"
-                a.porez.Osnovica = osnovica #"100.00"
-                porez=str(invoice.amount_tax)
-                if porez[-2]==".":
-                    porez=porez + "0"
-                a.porez.Iznos = porez #"25.00"
-                a.racun.Pdv.Porez.append(a.porez)
-
+            self.get_fiskal_taxes(cr, uid, invoice, a, context=context)
         
-        iznos=str(invoice.amount_total) 
-        if iznos[-2]=='.':  # ovo sam dodao ako slučajno iznos završava na 0  da ne vrati gresku radi druge decimale!
-                            # npr 75,00 prikze kao 75.0 ! pa dodam samo jednu nulu da prodje :)
-            iznos=iznos+'0'
-        a.racun.IznosUkupno = iznos # "125.00" #
+        a.racun.IznosUkupno = fiskal_num2str(invoice.amount_total)
         
         a.racun.NacinPlac = invoice.nac_plac
-        a.racun.OibOper = invoice.fiskal_user_id.OIB #"57699704120"
+        a.racun.OibOper = invoice.fiskal_user_id.OIB[2:]  #"57699704120"
         
         if not invoice.zki:
             a.racun.NakDost = "false"  ##TODO rutina koja provjerava jel prvi puta ili ponovljeno sranje!
-            a.izracunaj_zastitni_kod(start_time['datum_racun'])
+            a.izracunaj_zastitni_kod() #start_time['datum_racun'])
             self.write(cr,uid,id,{'zki':a.racun.ZastKod})
         else :
             a.racun.NakDost = "true"
@@ -150,6 +214,7 @@ class account_invoice(osv.Model):
             odgovor = "JIR - " + jir
             zk=self.write(cr,uid,id,{'jir':jir})
 
+        """
         poslao = "Račun :" + invoice.number +"\n"
         poslao = poslao +"StartTime : "+ start_time['datum_vrijeme']+ "\n"
         poslao = poslao + "OIB Organizacije : " +"\n"
@@ -165,15 +230,15 @@ class account_invoice(osv.Model):
             poslao="Slanje: 1.\n" + poslao + "\n"
         else :
             poslao="Ponovljeno slanje \n" + poslao + "\n"
-        
-        
+        """
         stop_time=a.time_formated()
         
         ##ovo sam dodao samo da vidim vrijeme odaziva...
         t_obrada=stop_time['time_stamp']-start_time['time_stamp']
         time_ob='%s.%s s'%(t_obrada.seconds, t_obrada.microseconds)
         ################################################
-        
+
+        """
         values={
                 'name':uuid.uuid4(),
                 'type':'racun',
@@ -184,7 +249,7 @@ class account_invoice(osv.Model):
                 'odgovor': odgovor
                 }
         return self.pool.get('l10n.hr.log').create(cr,uid,values,context=context)
-    
+        """
 account_invoice()
 
 
@@ -206,7 +271,7 @@ class account_move(osv.osv):
             for move in self.browse(cr, uid, ids):
                 new_name =  '/'.join( (move.name, fiskalni_sufiks) ) 
                 self.write(cr, uid, [move.id], {'name':new_name})
-                self.pool.get('account.invoice').fiskaliziraj(cr, uid, ids, context)
+                self.pool.get('account.invoice').fiskaliziraj(cr, uid, invoice.id, context)
         return res
     
     

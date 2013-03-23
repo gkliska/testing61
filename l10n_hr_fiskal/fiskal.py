@@ -22,6 +22,34 @@ keyFile = certFile = ""
 #logging.getLogger('suds.transport').setLevel(logging.DEBUG)
 #--> Loging isključio.. mozda ostaviti kasnije... ali sad trenutno netrebao.. 
 
+def received(self, context):
+    self.poruka_odgovor = context.reply
+ 
+    libxml2.initParser()
+    libxml2.substituteEntitiesDefault(1)
+ 
+    xmlsec.init()
+    xmlsec.cryptoAppInit(None)
+    xmlsec.cryptoInit()
+ 
+    mngr = xmlsec.KeysMngr()
+    xmlsec.cryptoAppDefaultKeysMngrInit(mngr)
+    #mngr.certLoad(verifyCertFile, xmlsec.KeyDataFormatPem, xmlsec.KeyDataTypeTrusted)
+    mngr.certLoad(certFile, xmlsec.KeyDataFormatPem, xmlsec.KeyDataTypeTrusted)
+  
+    doc = libxml2.parseDoc(context.reply)
+    xmlsec.addIDs(doc, doc.getRootElement(), ['Id'])
+    node = xmlsec.findNode(doc.getRootElement(), xmlsec.NodeSignature, xmlsec.DSigNs)
+    dsig_ctx = xmlsec.DSigCtx(mngr)
+    dsig_ctx.verify(node)
+    if(dsig_ctx.status == xmlsec.DSigStatusSucceeded): self.valid_signature = 1
+ 
+    xmlsec.cryptoShutdown()
+    xmlsec.cryptoAppShutdown()
+    xmlsec.shutdown()
+    libxml2.cleanupParser()
+    return context
+
 ###################### Override failed metode zbog XML cvora koji fali u odgovoru porezne ################
 def failed(self, binding, error):
     return _failed(self, binding, error)
@@ -51,9 +79,13 @@ from datetime import datetime
 from pytz import timezone
 
 def zagreb_now():
-    now_utc = datetime.now(timezone('UTC'))
-    now_utc.astimezone(timezone('Europe/Zagreb'))
-    now_zagreb= datetime.now(timezone('Europe/Zagreb'))
+    return datetime.now(timezone('Europe/Zagreb'))
+    #now_utc = datetime.now(timezone('UTC'))
+    #now_utc.astimezone(timezone('Europe/Zagreb'))
+    #now_zagreb= datetime.now(timezone('Europe/Zagreb'))
+
+def fiskal_num2str(num):
+    return "{:-.2f}".format(num)
 
 class DodajPotpis(MessagePlugin):
     
@@ -159,7 +191,7 @@ class Fiskalizacija():
         #racun = client2.factory.create('tns:Racun')
 
     def time_formated(self): 
-        tstamp=datetime.datetime.now()
+        tstamp = zagreb_now() #datetime.datetime.now() this was server def. tz time
         ##PAZI TIME OFFSET!!! uzmi timestamp , al vrijeme ima offset!!
         v_date='%02d.%02d.%02d' % (tstamp.day, tstamp.month, tstamp.year)
         v_datum_vrijeme='%02d.%02d.%02dT%02d:%02d:%02d' % (tstamp.day, tstamp.month, tstamp.year, tstamp.hour, tstamp.minute, tstamp.second)
@@ -222,29 +254,5 @@ class Fiskalizacija():
         poruka = str(self.client2.service.racuni(self.zaglavlje, self.racun).envelope)
         self.client2.options.nosend = False
         return poruka
-  
-    
-    
-#depreciate
-class PrijavaProstora():
-
-    def init(self, poruka ):
-        path=os.getcwd()
-        wsdl=''
-        wsdl='file://' + path + '/openerp/addons/l10n_hr_fiskal/wsdl/FiskalizacijaService.wsdl'
-        client2 = Client(wsdl, cache=None, prettyxml=True, timeout=15, faults=False, plugins=[DodajPotpis()]) 
-        client2.add_prefix('tns', 'http://www.apis-it.hr/fin/2012/types/f73')
-        
-        zaglavlje = client2.factory.create('tns:Zaglavlje')
-        pp = client2.factory.create('tns:PoslovniProstor')
-    #adresni_podatak = client2.factory.create('tns:AdresniPodatak')
-    def posalji(self):
-        odgovor=self.client2.service.poslovniProstor(self.zaglavlje, self.pp)
-        poruka_zahtjev =  self.client2.last_sent().str()
-        poruka_odgovor = str(odgovor)
-        pass #TODO upakirati zahjtev i odgovor pa posle raskopati i spremiti u bazu!
-        return poruka_odgovor
-        #http_status = odgovor[0]
-        #return http_status
         
     

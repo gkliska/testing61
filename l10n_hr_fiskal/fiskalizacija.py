@@ -293,13 +293,13 @@ class fiskal_uredjaj(osv.Model):
     _columns = {
         'name': fields.char('Naziv naplatnog uredjaja', size=128 , select=1),
         'prostor_id':fields.many2one('fiskal.prostor','Prostor',help='Prostor naplatnog uredjaja.'),
-        'oznaka_uredjaj': fields.char('Oznaka naplatnog uredjaja', required="True", size=20),
+        'oznaka_uredjaj': fields.integer('Oznaka naplatnog uredjaja', required="True" ),
                 }
     
 class users(osv.osv):
     _inherit = "res.users"
     _columns = {
-        'OIB': fields.char('OIB osobe', size=11, help='OIB osobe koja potvrdjuje racune za potrebe fiskalizacije'),
+        'OIB': fields.char('OIB osobe', size=13, help='OIB osobe koja potvrdjuje racune za potrebe fiskalizacije'),
         ##7.0
         #'OIB': fields.related('partner_id','vat', string='OIB osobe' ), # relation='res.partner'
         ##'number': fields.related('move_id','name', type='char', readonly=True, size=64, relation='account.move', store=True, string='Number'),
@@ -310,19 +310,18 @@ class account_tax_code(osv.osv):
     _inherit = 'account.tax.code'
 
     def _get_fiskal_type(self,cursor,user_id, context=None):
-        return (('pdv','Pdv'),
+        return [('pdv','Pdv'),
                 ('pnp','Porez na potrosnju'),
                 ('ostali','Ostali porezi'),
-                ('oslobodenje','Oslobodjenje')
-                ('marza','Oporezivanje marze')
-                ('ne_podlijeze','Ne podlijeze oporezivanju')
-                ('naknade','Naknade (npr. ambalaza)')
-               )
+                ('oslobodenje','Oslobodjenje'),
+                ('marza','Oporezivanje marze'),
+                ('ne_podlijeze','Ne podlijeze oporezivanju'),
+                ('naknade','Naknade (npr. ambalaza)'),
+               ]
 
     _columns = {
-        'fiskal_percent': fields.char('Naziv naplatnog uredjaja', size=128 , select=1),
+        'fiskal_percent': fields.char('Porezna stopa', size=128 , help='Porezna stopa za potrebe fiskalizacije. Primjer: 25.00'),
         'fiskal_type':fields.selection(_get_fiskal_type, 'Vrsta poreza',help='Vrsta porezne grupe za potrebe fiskalizacije.'),
-        'oznaka_uredjaj': fields.char('Oznaka naplatnog uredjaja', required="True", size=20),
                 }
 
 

@@ -108,17 +108,32 @@
 
 		<!-- res.users OIB -->
 		<record id="view_users_form_fiskal_oib" model="ir.ui.view">
-        <field name="name">res.users.form_fiskal_oib</field>
-          <field name="model">res.users</field>
-          <field name="type">form</field>
-          <field name="inherit_id" ref="base.view_users_form"/>
-          <field name="arch" type="xml">
-              <field name="active" position="after">
+			<field name="name">res.users.form_fiskal_oib</field>
+			<field name="model">res.users</field>
+			<field name="type">form</field>
+			<field name="inherit_id" ref="base.view_users_form"/>
+			<field name="arch" type="xml">
+				<field name="active" position="after">
 					<field name="OIB"/>
-              </field>
-          </field>
-     </record>
+				</field>
+			</field>
+		</record>
 
+		<!-- res.users OIB -->
+		<record id="account.view_tax_code_form_fiskal" model="ir.ui.view">
+			<field name="name">account.tax.code.form.fiskal</field>
+			<field name="model">account.tax.code</field>
+			<field name="type">form</field>
+			<field name="inherit_id" ref="account.view_tax_code_form"/>
+			<field name="arch" type="xml">
+				<field name="company_id" position="after">
+					<field name="fiskal_type"/>
+					<field name="fiskal_percent"/>
+				</field>
+			</field>
+		</record>
+
+	
 		
 	</data>
 </openerp>
