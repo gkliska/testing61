@@ -85,8 +85,18 @@ class account_move_line(osv.osv):
         return True
 
     _constraints = [
+<<<<<<< HEAD
         (_check_contra_minus, _('Negative credit or debit amount is not allowed for "contra" journal policy.'), ['journal_id']),
         (_check_storno_tax, _('Invalid tax amount. Tax amount can be 0.00 or equal to (Credit + Debit).'), ['journal_id']),
+=======
+<<<<<<< HEAD
+        (_check_contra_minus, _('Negative credit or debit amount is not allowed for "contra" journal policy.'), ['journal_id']),
+        (_check_storno_tax, _('Invalid tax amount. Tax amount can be 0.00 or equal to (Credit + Debit).'), ['journal_id']),
+=======
+        (_check_contra_minus, 'Negative credit or debit amount is not allowed for "contra" journal policy.', ['journal_id']),
+        (_check_storno_tax, 'Negative credit or debit amount is not allowed for "contra" journal policy.', ['journal_id']),
+>>>>>>> 253bacc248c06453424ca891b6f2c2264b0f6315
+>>>>>>> 87fa7789f88249193a4f15d6b932d67bcffcf638
     ]
 
 

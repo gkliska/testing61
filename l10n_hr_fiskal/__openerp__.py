@@ -28,7 +28,15 @@
 {
     "name" : "Croatian localization - Fiscalization module",
     "description" : """
+<<<<<<< HEAD
 Fiskalizacija izdanih računa
+=======
+<<<<<<< HEAD
+Fiskalizacija izdanih računa
+=======
+OpenERP Fiskalizacija izdanih računa
+>>>>>>> 253bacc248c06453424ca891b6f2c2264b0f6315
+>>>>>>> 87fa7789f88249193a4f15d6b932d67bcffcf638
 ====================================
 
 Author: Davor Bojkić - Bole @ DAJ MI 5
@@ -37,10 +45,56 @@ Author: Davor Bojkić - Bole @ DAJ MI 5
 Contributions: Hrvoje ThePython - Free Code!
                Goran Kliska @ Slobodni Programi
 
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> 87fa7789f88249193a4f15d6b932d67bcffcf638
 Preduvjeti: 
     na serveru instalirati:
         python-dev, python-ms2crypto, libxmlsec1-dev
         build/install pyxmlsec-0.3.2! 
+<<<<<<< HEAD
+=======
+=======
+Description:
+TODO:
+STAGE2 : napomene
+    Propisati će se izgled broja računa kako se DA 
+    treba ispisivati na fizičkom računu u 
+    sljedećem obliku: 
+    Račun
+    brojčana oznaka računa/oznaka poslovnog prostora/oznaka naplatnog uređaja
+    Primjer: 1234567890/POSL1/12
+    
+    PREGLEDATI BROJEVNI KRUG ZA IRA!
+
+
+STAGE 1 DONE!
+v1.01    Gumb TEST šalje i dobiva jir
+            ako zeza!
+            potrebno popraviti path za wsdl u fiskal.py i učitati vrijednosti sa drugih polja.. 
+        
+        a lot of stuff...  send echo and recive/log reply will be considered succes for stage 1.
+v1.00    Dodane tablice pripadni views, 
+         zasada dodijeljeni izbornici Postavke/Fiskalizacija:
+            - l10n_hr_pprostor - podaci o poslovnim prostorima
+            - l10n_hr_log    - log komunikacije sa serverima 
+            - res_certificates - pohranjeni certifikati i ključevi
+            - res_certificates_servers - serveri naziv/link
+                - Podaci : Testni i Produkcijski server Porezne Uprave
+            - Ostali bitni a promjenjivi podaci preuzeti sa stranica porezne:
+                 wsdl/FiskalizacijaService.wsdl
+                 schema/FiskalizacijaSchema
+                 schema/xmldsig-core-schema.xsd
+
+Preduvjeti: 
+    na serveru instalirati:
+        python-dev ,
+        python-ms2crypto , 
+        libxmlsec1-dev
+    i onda build/install pyxmlsec-0.3.2 ili pronaći neki prikladniji! 
+>>>>>>> 253bacc248c06453424ca891b6f2c2264b0f6315
+>>>>>>> 87fa7789f88249193a4f15d6b932d67bcffcf638
 """,
     "version" : "1.02",
     "author" : "DAJ MI 5",
@@ -55,6 +109,10 @@ Preduvjeti:
                 ],
     #'external_dependencies':{'python':['m2crypto','pyxmlsec'],
     #                         'bin':'libxmlsec-dev'},
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> 87fa7789f88249193a4f15d6b932d67bcffcf638
     'update_xml': [
                    'certificate_view.xml',
                    'fiskalizacija_view.xml',
@@ -62,6 +120,34 @@ Preduvjeti:
                    'account_view.xml',
                    'account_invoice_view.xml',
                    ],
+<<<<<<< HEAD
+=======
+=======
+    'init_xml': [],
+    'update_xml': [
+                   'certificate_view.xml',
+                   'fiskalizacija_view.xml',
+                   'company_view.xml',
+
+                   #'view/l10n_hr_fiskal_view.xml',
+                   #'view/res_certificate_view.xml',
+                   #'view/l10n_hr_log_view.xml',
+                   #'data/res.certificate.server.csv',
+                   ## DEMO DATA - dodao nekoliko partnera za test
+                   #'demo/res.partner.csv',          #dodajem partnere
+                   #'demo/demo_certifikat_Z3.xml',    # dodajem Z3 Demo cert
+                   #'demo/res_company.xml', #za praznu bazu upiše naziv i oib.. 
+                   #'view/account_invoice_view.xml',
+                   #'view/zki_check.xml'
+                   ##testing only
+                   #'test.xml'
+                   ],
+    "demo" : [
+              
+              ],
+    'test' : [],
+>>>>>>> 253bacc248c06453424ca891b6f2c2264b0f6315
+>>>>>>> 87fa7789f88249193a4f15d6b932d67bcffcf638
     "active": False,
     "installable": True,
 }

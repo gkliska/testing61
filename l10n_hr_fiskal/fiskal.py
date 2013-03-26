@@ -8,6 +8,7 @@ from M2Crypto import RSA
 
 import logging
 
+<<<<<<< HEAD
 from openerp.osv import fields, osv, orm
 from tools import config
 from datetime import datetime
@@ -17,6 +18,23 @@ from pytz import timezone
 #Globals, TODO improve
 keyFile = certFile = "" 
 
+=======
+#Globals
+keyFile = certFile = "" 
+
+######################
+## potrebno iz fina certa izvaditi kljuceve i upakirati ih u folder...
+#keyFile = 'openerp/addons/l10n_hr_fiskal/kljuc.pem'
+#certFile = 'openerp/addons/l10n_hr_fiskal/cert.pem'
+# ovo bi isto učitao iz baze, polja su spremna samo trebam izvadit van..  zasada ovako---
+
+#logging.basicConfig(level=logging.INFO, filename='/var/log/fisk/fiskalizacija.log')
+#logging.getLogger('suds.client').setLevel(logging.DEBUG)
+#logging.getLogger('suds.transport').setLevel(logging.DEBUG)
+#--> Loging isključio.. mozda ostaviti kasnije... ali sad trenutno netrebao.. 
+
+<<<<<<< HEAD
+>>>>>>> 87fa7789f88249193a4f15d6b932d67bcffcf638
 def received(self, context):
     self.poruka_odgovor = context.reply
  
@@ -45,10 +63,20 @@ def received(self, context):
     libxml2.cleanupParser()
     return context
 
+<<<<<<< HEAD
 # Override failed metode zbog XML cvora koji fali u odgovoru porezne 
 def failed(self, binding, error):
     return _failed(self, binding, error)
 
+=======
+=======
+>>>>>>> 253bacc248c06453424ca891b6f2c2264b0f6315
+###################### Override failed metode zbog XML cvora koji fali u odgovoru porezne ################
+def failed(self, binding, error):
+    return _failed(self, binding, error)
+
+
+>>>>>>> 87fa7789f88249193a4f15d6b932d67bcffcf638
 def _failed(self, binding, error):
     status, reason = (error.httpcode, str(error))
     reply = error.fp.read()
@@ -68,6 +96,7 @@ def _failed(self, binding, error):
         return (status, None)
 
 suds.client.SoapClient.failed = _failed
+<<<<<<< HEAD
 #suds.client.SoapClient.received = received
 
 def zagreb_now():
@@ -75,6 +104,23 @@ def zagreb_now():
 
 def fiskal_num2str(num):
     return "{:-.2f}".format(num)
+=======
+
+<<<<<<< HEAD
+from datetime import datetime
+from pytz import timezone
+
+def zagreb_now():
+    return datetime.now(timezone('Europe/Zagreb'))
+    #now_utc = datetime.now(timezone('UTC'))
+    #now_utc.astimezone(timezone('Europe/Zagreb'))
+    #now_zagreb= datetime.now(timezone('Europe/Zagreb'))
+
+def fiskal_num2str(num):
+    return "{:-.2f}".format(num)
+=======
+>>>>>>> 253bacc248c06453424ca891b6f2c2264b0f6315
+>>>>>>> 87fa7789f88249193a4f15d6b932d67bcffcf638
 
 class DodajPotpis(MessagePlugin):
     
@@ -137,25 +183,41 @@ class DodajPotpis(MessagePlugin):
 
         return context
 
+<<<<<<< HEAD
+=======
+
+############################################################################################################################################
+
+from tools import config
+
+>>>>>>> 87fa7789f88249193a4f15d6b932d67bcffcf638
 def SetFiskalFilePaths(key, cert):
     global keyFile, certFile
     keyFile, certFile = key, cert
 
 class Fiskalizacija():
     
+<<<<<<< HEAD
     def init(self, msgtype, wsdl, key, cert, oe_id=None):
+=======
+    def init(self, msgtype, wsdl, key, cert):
+>>>>>>> 87fa7789f88249193a4f15d6b932d67bcffcf638
         #file paths for wsdl, key, cert
         self.wsdl = wsdl  
         self.key = key 
         self.cert = cert
+<<<<<<< HEAD
         self.msgtype =msgtype
         self.oe_id = oe_id or 0 #openerp id racuna ili pprostora ili 0 za echo i ostalo
+=======
+>>>>>>> 87fa7789f88249193a4f15d6b932d67bcffcf638
         SetFiskalFilePaths(key, cert)
 
         self.client2 = Client(wsdl, cache=None, prettyxml=True, timeout=15, faults=False, plugins=[DodajPotpis()] ) 
         self.client2.add_prefix('tns', 'http://www.apis-it.hr/fin/2012/types/f73')
         self.zaglavlje = self.client2.factory.create('tns:Zaglavlje')
 
+<<<<<<< HEAD
         if msgtype in ('echo'):
             pass
         elif msgtype in ('prostor_prijava', 'prostor_odjava', 'PoslovniProstor'):
@@ -165,6 +227,35 @@ class Fiskalizacija():
 
     def time_formated(self): 
         tstamp = zagreb_now() #datetime.datetime.now() this was server def. tz time
+=======
+        #Not needed
+        if msgtype in ('echo'):
+            pass
+        elif msgtype in ('PoslovniProstor'):
+            self.prostor = self.client2.factory.create('tns:PoslovniProstor')
+        elif msgtype in ('Racun'):
+            self.racun = self.client2.factory.create('tns:Racun') 
+
+<<<<<<< HEAD
+    def time_formated(self): 
+        tstamp = zagreb_now() #datetime.datetime.now() this was server def. tz time
+=======
+        
+        
+        #os.mkdir(path,06000)
+        
+        #os.getlogin()
+        
+        #client2 = Client(wsdl, cache=None, prettyxml=True, timeout=15, faults=False, ) 
+        ##client2 = Client(wsdl, prettyxml=True, timeout=3, plugins=[DodajPotpis()]) 
+        #client2.add_prefix('tns', 'http://www.apis-it.hr/fin/2012/types/f73')
+        #zaglavlje = client2.factory.create('tns:Zaglavlje')
+        #racun = client2.factory.create('tns:Racun')
+
+    def time_formated(self): 
+        tstamp=datetime.datetime.now()
+>>>>>>> 253bacc248c06453424ca891b6f2c2264b0f6315
+>>>>>>> 87fa7789f88249193a4f15d6b932d67bcffcf638
         ##PAZI TIME OFFSET!!! uzmi timestamp , al vrijeme ima offset!!
         v_date='%02d.%02d.%02d' % (tstamp.day, tstamp.month, tstamp.year)
         v_datum_vrijeme='%02d.%02d.%02dT%02d:%02d:%02d' % (tstamp.day, tstamp.month, tstamp.year, tstamp.hour, tstamp.minute, tstamp.second)
@@ -180,22 +271,40 @@ class Fiskalizacija():
 
     def set_stop_time(self):
         self.stop_time = self.time_formated()
+<<<<<<< HEAD
+=======
+        
+>>>>>>> 87fa7789f88249193a4f15d6b932d67bcffcf638
 
     def echo(self):
         #self.echo = self.client2.service.echo('Ovo moze biti bolikoji teskt za test poruku')
         try:
+<<<<<<< HEAD
             pingtest=self.client2.service.echo('TEST PORUKA')
+=======
+            pingtest=self.client2.service.echo('TEST PORUKICA')
+>>>>>>> 87fa7789f88249193a4f15d6b932d67bcffcf638
             return pingtest
         except:
             return 'ERROR SEND ECHO'
         #if(self.client2.service.echo('OK') == 'OK'): return True
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> 87fa7789f88249193a4f15d6b932d67bcffcf638
     def posalji_prostor(self):
         odgovor=self.client2.service.poslovniProstor(self.zaglavlje, self.pp)
         poruka_zahtjev =  self.client2.last_sent().str()
         poruka_odgovor = str(odgovor)
         return poruka_odgovor, poruka_zahtjev
+<<<<<<< HEAD
     
+=======
+        
+    
+<<<<<<< HEAD
+>>>>>>> 87fa7789f88249193a4f15d6b932d67bcffcf638
     def izracunaj_zastitni_kod(self):    
         self.racun.ZastKod = self.get_zastitni_kod(self.racun.Oib,
                                                   self.racun.DatVrijeme,
@@ -211,6 +320,17 @@ class Fiskalizacija():
         signature = pkey.sign(hashlib.sha1(medjurezultat).digest())
         return hashlib.md5(signature).hexdigest()
 
+<<<<<<< HEAD
+=======
+=======
+    def izracunaj_zastitni_kod(self, datumvrijeme):    
+        medjurezultat = self.racun.Oib + str(datumvrijeme) + str(self.racun.BrRac.BrOznRac) + self.racun.BrRac.OznPosPr + self.racun.BrRac.OznNapUr + str(self.racun.IznosUkupno)
+        pkey = RSA.load_key(keyFile)
+        signature = pkey.sign(hashlib.sha1(medjurezultat).digest())
+        self.racun.ZastKod = hashlib.md5(signature).hexdigest()
+>>>>>>> 253bacc248c06453424ca891b6f2c2264b0f6315
+
+>>>>>>> 87fa7789f88249193a4f15d6b932d67bcffcf638
     def posalji_racun(self):
         try:
             return self.client2.service.racuni(self.zaglavlje, self.racun)
@@ -223,5 +343,35 @@ class Fiskalizacija():
         poruka = str(self.client2.service.racuni(self.zaglavlje, self.racun).envelope)
         self.client2.options.nosend = False
         return poruka
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+=======
+  
+    
+    
+#depreciate
+class PrijavaProstora():
+
+    def init(self, poruka ):
+        path=os.getcwd()
+        wsdl=''
+        wsdl='file://' + path + '/openerp/addons/l10n_hr_fiskal/wsdl/FiskalizacijaService.wsdl'
+        client2 = Client(wsdl, cache=None, prettyxml=True, timeout=15, faults=False, plugins=[DodajPotpis()]) 
+        client2.add_prefix('tns', 'http://www.apis-it.hr/fin/2012/types/f73')
+        
+        zaglavlje = client2.factory.create('tns:Zaglavlje')
+        pp = client2.factory.create('tns:PoslovniProstor')
+    #adresni_podatak = client2.factory.create('tns:AdresniPodatak')
+    def posalji(self):
+        odgovor=self.client2.service.poslovniProstor(self.zaglavlje, self.pp)
+        poruka_zahtjev =  self.client2.last_sent().str()
+        poruka_odgovor = str(odgovor)
+        pass #TODO upakirati zahjtev i odgovor pa posle raskopati i spremiti u bazu!
+        return poruka_odgovor
+        #http_status = odgovor[0]
+        #return http_status
+>>>>>>> 253bacc248c06453424ca891b6f2c2264b0f6315
+>>>>>>> 87fa7789f88249193a4f15d6b932d67bcffcf638
         
     

@@ -3,9 +3,15 @@
 	<data>
 
 		<!-- account Journal -->
+<<<<<<< HEAD
+		<record id="view_account_journal_fiskal" model="ir.ui.view" >
+			<field name="name">view.account.journal.fiskal</field>
+			<field name="model">account.journal</field>
+=======
 		<record model="ir.ui.view" id="account_invoice_l10_n_hr_fiskal">
 			<field name="name">account.invoice.l10n.hr.fiskal</field>
 			<field name="model">account.invoice</field>
+>>>>>>> 87fa7789f88249193a4f15d6b932d67bcffcf638
 			<field name="inherit_id" ref="l10n_hr_account.view_account_journal_invoice_pnbr"/>
 			<field name="arch" type="xml">
 				<field name="P4_pnbr" position="after">

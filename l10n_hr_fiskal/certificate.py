@@ -10,8 +10,19 @@ class certificate(osv.osv):
         return (('fina_demo','Fina Demo Certifiacte'),
                 ('fina_prod','Fina Production Certificate'),
                 ('personal','Personal Certificate'),
+<<<<<<< HEAD
                 ('other','Other types')
                )
+=======
+<<<<<<< HEAD
+                ('other','Other types')
+               )
+=======
+                ('other','Other types ->TODO')
+               )
+
+>>>>>>> 253bacc248c06453424ca891b6f2c2264b0f6315
+>>>>>>> 87fa7789f88249193a4f15d6b932d67bcffcf638
     
     _columns = {
         'company_id':fields.many2one('res.company','Tvrtka',help='Cerificate is used for this company only.'),
@@ -23,6 +34,13 @@ class certificate(osv.osv):
     _defaults = {
          'state': 'draft',
          'company_id': lambda self,cr,uid,c: self.pool.get('res.company')._company_default_get(cr, uid, 'crypto.certificate', context=c),
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+=======
+        
+>>>>>>> 253bacc248c06453424ca891b6f2c2264b0f6315
+>>>>>>> 87fa7789f88249193a4f15d6b932d67bcffcf638
     }
     
 

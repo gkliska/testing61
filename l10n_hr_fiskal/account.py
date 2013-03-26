@@ -41,6 +41,18 @@ class account_move(osv.osv):
             invoice = context.get('invoice', False)
             if not invoice:
                 return res 
+<<<<<<< HEAD
+
+            if not invoice.type in ('out_invoice', 'out_refund'):  #samo izlazne racune  
+                return res 
+
+            fiskalni_sufiks = '/'.join( (invoice.uredjaj_id.prostor_id.oznaka_prostor, str(invoice.uredjaj_id.oznaka_uredjaj)))
+            for move in self.browse(cr, uid, ids):
+                new_name =  '/'.join( (move.name, fiskalni_sufiks) ) 
+                self.write(cr, uid, [move.id], {'name':new_name})
+                if invoice.journal_id.fiskal_active: #samo oznacene journale
+                    self.pool.get('account.invoice').fiskaliziraj(cr, uid, invoice.id, context)
+=======
             if not (invoice.journal_id.fiskal_active and             #samo oznacene journale
                     invoice.type in ('out_invoice', 'out_refund')):  #samo izlazne racune  
                 return res 
@@ -50,5 +62,6 @@ class account_move(osv.osv):
                 new_name =  '/'.join( (move.name, fiskalni_sufiks) ) 
                 self.write(cr, uid, [move.id], {'name':new_name})
                 self.pool.get('account.invoice').fiskaliziraj(cr, uid, invoice.id, context)
+>>>>>>> 87fa7789f88249193a4f15d6b932d67bcffcf638
         return res
     

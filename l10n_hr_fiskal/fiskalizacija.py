@@ -30,6 +30,10 @@ import datetime
 import uuid
 from fiskal import *
 
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> 87fa7789f88249193a4f15d6b932d67bcffcf638
 class res_users(osv.osv):
     _inherit = "res.users"
     _columns = {
@@ -51,6 +55,12 @@ class res_company(osv.osv):
             ),    
     }
 
+<<<<<<< HEAD
+=======
+=======
+>>>>>>> 253bacc248c06453424ca891b6f2c2264b0f6315
+
+>>>>>>> 87fa7789f88249193a4f15d6b932d67bcffcf638
 class fiskal_prostor(osv.Model):
     _name = 'fiskal.prostor'
     _description = 'Podaci o poslovnim prostorima za potrebe fiskalizacije'
@@ -104,7 +114,11 @@ class fiskal_prostor(osv.Model):
             company_id = user_obj.browse(cr, uid, [uid])[0].company_id.id
         company_obj = self.pool.get('res.company')    
         company = company_obj.browse(cr, uid, [company_id])[0]
+<<<<<<< HEAD
+        fina_cert = company.fina_certifikat_id
+=======
         fina_cert = company.fina_certifikat
+>>>>>>> 87fa7789f88249193a4f15d6b932d67bcffcf638
         if not fina_cert:
             return False
         cert_type = fina_cert.cert_type
@@ -119,6 +133,10 @@ class fiskal_prostor(osv.Model):
         if not ( fina_cert.state=='confirmed' and fina_cert.csr and fina_cert.crt):
             return False, False, False
 
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> 87fa7789f88249193a4f15d6b932d67bcffcf638
         #radi ako je server pokrenut sa -c: path = os.path.join(os.path.dirname(os.path.abspath(config.parser.values.config)),'oe_fiskal')
         path = os.path.join(os.path.dirname(os.path.abspath(config.rcfile)),'oe_fiskal')
         if not os.path.exists(path):
@@ -126,6 +144,16 @@ class fiskal_prostor(osv.Model):
 
         key_file = os.path.join(path, "{0}_{1}_{2}_key.pem".format(cr.dbname, company_id, fina_cert.id) )         
         cert_file= os.path.join(path, "{0}_{1}_{2}_crt.pem".format(cr.dbname, company_id, fina_cert.id) )
+<<<<<<< HEAD
+=======
+=======
+        path = os.path.join(os.path.dirname(os.path.abspath(config.parser.values.config)),'oe_fiskal')
+        if not os.path.exists(path):
+            os.mkdir(path,0777) #TODO 0660 or less
+        key_file = os.path.join(path, "{0}_{1}_key.pem".format(company_id, fina_cert.id) )         
+        cert_file= os.path.join(path, "{0}_{1}_crt.pem".format(company_id, fina_cert.id) )
+>>>>>>> 253bacc248c06453424ca891b6f2c2264b0f6315
+>>>>>>> 87fa7789f88249193a4f15d6b932d67bcffcf638
         
         for file in (key_file, cert_file):
             if not os.path.exists(file):
@@ -169,10 +197,25 @@ class fiskal_prostor(osv.Model):
 
     def button_test_prostor(self, cr, uid, ids, fields, context=None):
         
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> 87fa7789f88249193a4f15d6b932d67bcffcf638
         prostor=self.browse(cr, uid, ids)[0]
         wsdl, cert, key = self.get_fiskal_data(cr, uid, company_id=prostor.company_id.id)
         if not wsdl:
             return False
+<<<<<<< HEAD
+=======
+=======
+        prostor=self.browse(cr,uid,ids)[0]
+        
+        wsdl, cert, key = self.get_fiskal_data(cr, uid, company_id=prostor.company_id.id)
+        if not wsdl:
+            return False
+        
+>>>>>>> 253bacc248c06453424ca891b6f2c2264b0f6315
+>>>>>>> 87fa7789f88249193a4f15d6b932d67bcffcf638
         a = Fiskalizacija()
         a.set_start_time()
         a.init('PoslovniProstor', wsdl, cert, key)
@@ -189,7 +232,15 @@ class fiskal_prostor(osv.Model):
         a.zaglavlje.IdPoruke = str(uuid.uuid1()) #moze i 4 
         ## podaci o pos prostoru
         a.pp = a.client2.factory.create('tns:PoslovniProstor') 
+<<<<<<< HEAD
         a.pp.Oib= prostor.company_id.partner_id.vat[2:] #'57699704120' Mora odgovarati OIB-u sa Cert-a
+=======
+<<<<<<< HEAD
+        a.pp.Oib= prostor.company_id.partner_id.vat[2:] #'57699704120' Mora odgovarati OIB-u sa Cert-a
+=======
+        a.pp.Oib= prostor.company_id.partner_id.vat[2:] #'57699704120'
+>>>>>>> 253bacc248c06453424ca891b6f2c2264b0f6315
+>>>>>>> 87fa7789f88249193a4f15d6b932d67bcffcf638
         a.pp.OznPoslProstora=prostor.oznaka_prostor
         a.pp.RadnoVrijeme=prostor.radno_vrijeme
         a.pp.DatumPocetkaPrimjene=datum_danas #'08.02.2013' #datum_danas   e ak ovo stavim baci gresku.. treba dodat raise ili nekaj!!!
@@ -201,7 +252,15 @@ class fiskal_prostor(osv.Model):
         
         adresa.Ulica= prostor.ulica  #'Diogneševa'
         if prostor.kbr:
+<<<<<<< HEAD
             adresa.KucniBroj=prostor.kbr  
+=======
+<<<<<<< HEAD
+            adresa.KucniBroj=prostor.kbr  
+=======
+            adresa.KucniBroj='' #prostor.kbr  
+>>>>>>> 253bacc248c06453424ca891b6f2c2264b0f6315
+>>>>>>> 87fa7789f88249193a4f15d6b932d67bcffcf638
         if prostor.kbr_dodatak:
             adresa.KucniBrojDodatak=prostor.kbr_dodatak
         
@@ -309,10 +368,24 @@ class fiskal_prostor(osv.Model):
 class fiskal_uredjaj(osv.Model):
     _name = 'fiskal.uredjaj'
     _description = 'Podaci o poslovnim prostorima za potrebe fiskalizacije'
+<<<<<<< HEAD
+
+    def name_get(self, cr, uid, ids, context=None):
+        res = {}
+        for u in self.browse(cr, uid, ids, context=context):
+            res[u.id] = ' / '.join( (u.prostor_id.name, u.name) )
+        return res.items()
+
+=======
+>>>>>>> 87fa7789f88249193a4f15d6b932d67bcffcf638
     
     _columns = {
         'name': fields.char('Naziv naplatnog uredjaja', size=128 , select=1),
         'prostor_id':fields.many2one('fiskal.prostor','Prostor',help='Prostor naplatnog uredjaja.'),
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> 87fa7789f88249193a4f15d6b932d67bcffcf638
         'oznaka_uredjaj': fields.integer('Oznaka naplatnog uredjaja', required="True" ),
                 }
 
@@ -329,16 +402,64 @@ class fiskal_log(osv.Model):
                 ('other','Other types')
                )
     _columns ={
-        'name': fields.text('Oznaka', help="Jedinstvena oznaka komunikacije "),
+<<<<<<< HEAD
+        'name': fields.char('Oznaka', size=32, help="Jedinstvena oznaka komunikacije "),
         'type': fields.selection (_get_log_type,'Vrsta poruke'),
         'invoice_id': fields.many2one('account.invoice', "Racun"),
         'fiskal_prostor_id': fields.many2one('fiskal.prostor', "P.prostor"),
+=======
+        'name': fields.text('Oznaka', help="Jedinstvena oznaka komunikacije "),
+        'type': fields.selection (_get_log_type,'Vrsta poruke'),
+>>>>>>> 87fa7789f88249193a4f15d6b932d67bcffcf638
         'sadrzaj':fields.text('Poslana poruka'),
         'odgovor':fields.text('Odgovor'),
         'greska':fields.text('Greska'),
         'timestamp':fields.datetime('TimeStamp'),
         'time_obr':fields.char('Time for response',size=16,help='Vrijeme obrade podataka'), #vrijeme obrade prmljeno_vrijeme-poslano_vrijem
+<<<<<<< HEAD
+        #'origin_id':fields.integer('Origin'), # id dokumenta sa kojeg dolazi.. za prostor i za racun, echo ne koristi.
+        'user_id': fields.many2one('res.users', 'User',readonly=False),
+    }
+
+=======
         'origin_id':fields.integer('Origin'), # id dokumenta sa kojeg dolazi.. za prostor i za racun, echo ne koristi.
         'user_id': fields.many2one('res.users', 'User',readonly=False),
     }
 
+
+=======
+        'oznaka_uredjaj': fields.char('Oznaka naplatnog uredjaja', required="True", size=20),
+                }
+""" TODO
+class l10n_hr_log(osv.Model):
+    _name='l10n.hr.log'
+    _description='Official communicatins log'    
+    
+    def _get_log_type(self,cursor,user_id, context=None):
+        return (('prostor','Prijava Prostora'),
+                ('racun','Fiskalizacija racuna'),
+                ('echo','Echo test message '),
+                ('other','Other types ->TODO')
+               )
+    _columns ={
+        'name': fields.char('Oznaka', size=128, help="Jedinstvena oznaka komunikacije "),
+        'type': fields.selection (_get_log_type,'Log message Type'),
+        'sadrzaj':fields.text('Message context'),
+        'odgovor':fields.text('Message reply'),
+        'timestamp':fields.datetime('TimeStamp'),
+        'time_obr':fields.char('Time for response',size=16,help='Vrijeme obrade podataka'), #vrijeme obrade prmljeno_vrijeme-poslano_vrijem
+        #'l10n_hr_fis_pprostor_id':fields.many2one('l10n_hr_fis_pprostor','l10n_hr_fis_pprostor_log_id','Prostor'),
+        'origin_id':fields.integer('Origin'), # id dokumenta sa kojeg dolazi.. za prostor i za racun, echo ne koristi.
+        #'users_id':fields.many2one('res.users', 'User') ## ovo cak i netreba obzirom na create i write uide !!
+        'user_id': fields.many2one('res.users', 'User',readonly=False),
+ 
+        }
+l10n_hr_log()
+
+"""
+>>>>>>> 253bacc248c06453424ca891b6f2c2264b0f6315
+
+
+
+
+>>>>>>> 87fa7789f88249193a4f15d6b932d67bcffcf638

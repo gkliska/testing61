@@ -22,9 +22,20 @@
 
 from osv import fields, osv
 from tools.translate import _
+<<<<<<< HEAD
 import poziv_na_broj as pnbr
 from tools import DEFAULT_SERVER_DATE_FORMAT, DEFAULT_SERVER_DATETIME_FORMAT
 
+=======
+<<<<<<< HEAD
+import poziv_na_broj as pnbr
+from tools import DEFAULT_SERVER_DATE_FORMAT, DEFAULT_SERVER_DATETIME_FORMAT
+
+=======
+
+import poziv_na_broj as pnbr
+>>>>>>> 253bacc248c06453424ca891b6f2c2264b0f6315
+>>>>>>> 87fa7789f88249193a4f15d6b932d67bcffcf638
 
 class account_invoice(osv.osv):
     _inherit = "account.invoice"
@@ -58,7 +69,15 @@ class account_invoice(osv.osv):
                                   required=True, readonly=True, states={'draft':[('readonly',False)]}),
                 'date_delivery': fields.date('Delivery Date', readonly=True,
                                  states={'draft':[('readonly',False)]}, select=True, help="Keep empty to use the current date"),
+<<<<<<< HEAD
                 #'nacin_placanja': fields.selection([('G','Gotovina'), ('K','Kartice'), ('C','Cek'), ('T','Transakcijski'), ('O','Ostalo')], 'Nacin placanja', size=1, required=False, help="Nacin placanja za potrebe fiskalizacije."),
+=======
+<<<<<<< HEAD
+                #'nacin_placanja': fields.selection([('G','Gotovina'), ('K','Kartice'), ('C','Cek'), ('T','Transakcijski'), ('O','Ostalo')], 'Nacin placanja', size=1, required=False, help="Nacin placanja za potrebe fiskalizacije."),
+=======
+                'nacin_placanja': fields.selection([('G','Gotovina'), ('K','Kartice'), ('C','Cek'), ('T','Transakcijski'), ('O','Ostalo')], 'Nacin placanja', size=1, required=False, help="Nacin placanja za potrebe fiskalizacije."),
+>>>>>>> 253bacc248c06453424ca891b6f2c2264b0f6315
+>>>>>>> 87fa7789f88249193a4f15d6b932d67bcffcf638
 
                }
 
@@ -126,9 +145,21 @@ class account_invoice(osv.osv):
                 ref = self._convert_ref(cr, uid, number)
                 #KGB - start
                 if not obj_inv.date_invoice:
+<<<<<<< HEAD
                     self.write(cr, uid, [id], {'date_invoice':time.strftime(DEFAULT_SERVER_DATE_FORMAT )}, context=context)
                     #TODO: need to? self.action_date_assign( cr, uid, [id])
                 if not obj_inv.date_delivery: #mandatory in Croatia for services
+=======
+<<<<<<< HEAD
+                    self.write(cr, uid, [id], {'date_invoice':time.strftime(DEFAULT_SERVER_DATE_FORMAT )}, context=context)
+                    #TODO: need to? self.action_date_assign( cr, uid, [id])
+                if not obj_inv.date_delivery: #mandatory in Croatia for services
+=======
+                    self.write(cr, uid, [id], {'date_invoice':time.strftime('%Y-%m-%d')}, context=context)
+                    #TODO: need to? self.action_date_assign( cr, uid, [id])
+                if not obj_inv.date_delivery: #mandatory in Croatia
+>>>>>>> 253bacc248c06453424ca891b6f2c2264b0f6315
+>>>>>>> 87fa7789f88249193a4f15d6b932d67bcffcf638
                     self.write(cr, uid, [id], {'date_delivery':obj_inv.date_invoice}, context=context)
                 ref = self.pnbr_get(cr, uid, id, context)
                 self.write(cr, uid, id, {'reference':ref})

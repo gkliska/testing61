@@ -24,9 +24,27 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 ##############################################################################
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> 87fa7789f88249193a4f15d6b932d67bcffcf638
 import fiskalizacija
 import certificate
 import account
 import account_invoice
+<<<<<<< HEAD
+=======
+=======
+import certificate
+import fiskalizacija
+import company
+
+#import res_certificate
+#import account_invoice
+#import zki_check
+#import TEST
+
+>>>>>>> 253bacc248c06453424ca891b6f2c2264b0f6315
+>>>>>>> 87fa7789f88249193a4f15d6b932d67bcffcf638
 
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:
