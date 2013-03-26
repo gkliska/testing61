@@ -1,6 +1,35 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <openerp>
 	<data>
+		<!-- res.users OIB for 6.1 only-->
+		<record id="view_users_form_fiskal_oib" model="ir.ui.view">
+			<field name="name">res.users.form_fiskal_oib</field>
+			<field name="model">res.users</field>
+			<field name="type">form</field>
+			<field name="inherit_id" ref="base.view_users_form"/>
+			<field name="arch" type="xml">
+				<field name="active" position="after">
+					<field name="OIB"/>
+				</field>
+			</field>
+		</record>
+
+		<!-- Company cert, prostor-->
+        <record id="view_company_form_fiskal" model="ir.ui.view">
+            <field name="name">view.company.form.fiskal</field>
+            <field name="model">res.company</field>
+            <field name="type">form</field>
+            <field name="inherit_id" ref="base.view_company_form"/>
+            <field name="arch" type="xml">
+            	<notebook position="inside">
+	                <page string="Fiskalizacija">
+				        <field name="fina_certifikat_id"/>
+				        <newline/>
+				        <field name="fiskal_prostor_ids"/>
+	                </page>
+                </notebook>
+            </field>
+        </record>   
 
 		<!-- Fiskal Prostor -->
 		<record id="fiskal_prostor_tree_view" model="ir.ui.view" >
@@ -85,55 +114,10 @@
 			<field name="res_model">fiskal.prostor</field>
 			<field name="view_type">form</field>
 			<field name="view_mode">tree,form</field>
-			<!--field name="help" type="html">
-				<p class="oe_view_nocontent_create">
-					Click to add new location.
-				</p>
-				<p>
-					In order to send invoice data to Tax office, you need to
-					enter
-					some data about your sale local10n.hr.pprostortion and rules of numbering..
-					blah
-					blah.. more text to comme,
-					as well as translations
-				</p>
-			</field-->
-
 		</record>
-
 
 		<menuitem id="menu_fiskal_root" name="Fiskalizacija" parent="base.menu_res_company_global" sequence="100" />
 		<menuitem id="menu_action_fiskal_prostor" name="Prijava Objekata" action="fiskal_prostor_action" parent="menu_fiskal_root" />
-
-
-		<!-- res.users OIB -->
-		<record id="view_users_form_fiskal_oib" model="ir.ui.view">
-			<field name="name">res.users.form_fiskal_oib</field>
-			<field name="model">res.users</field>
-			<field name="type">form</field>
-			<field name="inherit_id" ref="base.view_users_form"/>
-			<field name="arch" type="xml">
-				<field name="active" position="after">
-					<field name="OIB"/>
-				</field>
-			</field>
-		</record>
-
-		<!-- res.users OIB -->
-		<record id="account.view_tax_code_form_fiskal" model="ir.ui.view">
-			<field name="name">account.tax.code.form.fiskal</field>
-			<field name="model">account.tax.code</field>
-			<field name="type">form</field>
-			<field name="inherit_id" ref="account.view_tax_code_form"/>
-			<field name="arch" type="xml">
-				<field name="company_id" position="after">
-					<field name="fiskal_type"/>
-					<field name="fiskal_percent"/>
-				</field>
-			</field>
-		</record>
-
-	
 		
 	</data>
 </openerp>

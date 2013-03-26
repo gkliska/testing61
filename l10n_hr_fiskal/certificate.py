@@ -10,9 +10,8 @@ class certificate(osv.osv):
         return (('fina_demo','Fina Demo Certifiacte'),
                 ('fina_prod','Fina Production Certificate'),
                 ('personal','Personal Certificate'),
-                ('other','Other types ->TODO')
+                ('other','Other types')
                )
-
     
     _columns = {
         'company_id':fields.many2one('res.company','Tvrtka',help='Cerificate is used for this company only.'),
@@ -24,7 +23,6 @@ class certificate(osv.osv):
     _defaults = {
          'state': 'draft',
          'company_id': lambda self,cr,uid,c: self.pool.get('res.company')._company_default_get(cr, uid, 'crypto.certificate', context=c),
-        
     }
     
 

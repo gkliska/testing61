@@ -8,19 +8,14 @@ from M2Crypto import RSA
 
 import logging
 
-#Globals
+from openerp.osv import fields, osv, orm
+from tools import config
+from datetime import datetime
+from pytz import timezone
+
+
+#Globals, TODO improve
 keyFile = certFile = "" 
-
-######################
-## potrebno iz fina certa izvaditi kljuceve i upakirati ih u folder...
-#keyFile = 'openerp/addons/l10n_hr_fiskal/kljuc.pem'
-#certFile = 'openerp/addons/l10n_hr_fiskal/cert.pem'
-# ovo bi isto učitao iz baze, polja su spremna samo trebam izvadit van..  zasada ovako---
-
-#logging.basicConfig(level=logging.INFO, filename='/var/log/fisk/fiskalizacija.log')
-#logging.getLogger('suds.client').setLevel(logging.DEBUG)
-#logging.getLogger('suds.transport').setLevel(logging.DEBUG)
-#--> Loging isključio.. mozda ostaviti kasnije... ali sad trenutno netrebao.. 
 
 def received(self, context):
     self.poruka_odgovor = context.reply
@@ -50,10 +45,9 @@ def received(self, context):
     libxml2.cleanupParser()
     return context
 
-###################### Override failed metode zbog XML cvora koji fali u odgovoru porezne ################
+# Override failed metode zbog XML cvora koji fali u odgovoru porezne 
 def failed(self, binding, error):
     return _failed(self, binding, error)
-
 
 def _failed(self, binding, error):
     status, reason = (error.httpcode, str(error))
@@ -74,15 +68,10 @@ def _failed(self, binding, error):
         return (status, None)
 
 suds.client.SoapClient.failed = _failed
-
-from datetime import datetime
-from pytz import timezone
+#suds.client.SoapClient.received = received
 
 def zagreb_now():
     return datetime.now(timezone('Europe/Zagreb'))
-    #now_utc = datetime.now(timezone('UTC'))
-    #now_utc.astimezone(timezone('Europe/Zagreb'))
-    #now_zagreb= datetime.now(timezone('Europe/Zagreb'))
 
 def fiskal_num2str(num):
     return "{:-.2f}".format(num)
@@ -148,47 +137,31 @@ class DodajPotpis(MessagePlugin):
 
         return context
 
-
-############################################################################################################################################
-
-from tools import config
-
 def SetFiskalFilePaths(key, cert):
     global keyFile, certFile
     keyFile, certFile = key, cert
 
 class Fiskalizacija():
     
-    def init(self, msgtype, wsdl, key, cert):
+    def init(self, msgtype, wsdl, key, cert, oe_id=None):
         #file paths for wsdl, key, cert
         self.wsdl = wsdl  
         self.key = key 
         self.cert = cert
+        self.msgtype =msgtype
+        self.oe_id = oe_id or 0 #openerp id racuna ili pprostora ili 0 za echo i ostalo
         SetFiskalFilePaths(key, cert)
 
         self.client2 = Client(wsdl, cache=None, prettyxml=True, timeout=15, faults=False, plugins=[DodajPotpis()] ) 
         self.client2.add_prefix('tns', 'http://www.apis-it.hr/fin/2012/types/f73')
         self.zaglavlje = self.client2.factory.create('tns:Zaglavlje')
 
-        #Not needed
         if msgtype in ('echo'):
             pass
-        elif msgtype in ('PoslovniProstor'):
+        elif msgtype in ('prostor_prijava', 'prostor_odjava', 'PoslovniProstor'):
             self.prostor = self.client2.factory.create('tns:PoslovniProstor')
-        elif msgtype in ('Racun'):
+        elif msgtype in ('racun', 'racun_ponovo', 'Racun'):
             self.racun = self.client2.factory.create('tns:Racun') 
-
-        
-        
-        #os.mkdir(path,06000)
-        
-        #os.getlogin()
-        
-        #client2 = Client(wsdl, cache=None, prettyxml=True, timeout=15, faults=False, ) 
-        ##client2 = Client(wsdl, prettyxml=True, timeout=3, plugins=[DodajPotpis()]) 
-        #client2.add_prefix('tns', 'http://www.apis-it.hr/fin/2012/types/f73')
-        #zaglavlje = client2.factory.create('tns:Zaglavlje')
-        #racun = client2.factory.create('tns:Racun')
 
     def time_formated(self): 
         tstamp = zagreb_now() #datetime.datetime.now() this was server def. tz time
@@ -207,24 +180,21 @@ class Fiskalizacija():
 
     def set_stop_time(self):
         self.stop_time = self.time_formated()
-        
 
     def echo(self):
         #self.echo = self.client2.service.echo('Ovo moze biti bolikoji teskt za test poruku')
         try:
-            pingtest=self.client2.service.echo('TEST PORUKICA')
+            pingtest=self.client2.service.echo('TEST PORUKA')
             return pingtest
         except:
             return 'ERROR SEND ECHO'
         #if(self.client2.service.echo('OK') == 'OK'): return True
-
 
     def posalji_prostor(self):
         odgovor=self.client2.service.poslovniProstor(self.zaglavlje, self.pp)
         poruka_zahtjev =  self.client2.last_sent().str()
         poruka_odgovor = str(odgovor)
         return poruka_odgovor, poruka_zahtjev
-        
     
     def izracunaj_zastitni_kod(self):    
         self.racun.ZastKod = self.get_zastitni_kod(self.racun.Oib,
@@ -240,7 +210,6 @@ class Fiskalizacija():
         pkey = RSA.load_key(keyFile)
         signature = pkey.sign(hashlib.sha1(medjurezultat).digest())
         return hashlib.md5(signature).hexdigest()
-
 
     def posalji_racun(self):
         try:

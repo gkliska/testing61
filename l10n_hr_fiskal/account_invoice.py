@@ -166,14 +166,22 @@ class account_invoice(osv.Model):
             dat_vrijeme = start_time['datum_vrijeme']
             self.write(cr, uid, [id], {'vrijeme_izdavanja': start_time['time_stamp'].strftime(tools.DEFAULT_SERVER_DATETIME_FORMAT) })
         
-        
-        a.racun.Oib = invoice.company_id.partner_id.vat[2:]  # npr"57699704120" 
+        if not invoice.company_id.fina_certifikat_id:
+            pass #TODO Error
+        if invoice.company_id.fina_certifikat_id.cert_type == 'fina_prod':
+           a.racun.Oib = invoice.company_id.partner_id.vat[2:]  # npr"57699704120"
+        elif invoice.company_id.fina_certifikat_id.cert_type == 'fina_demo':
+           a.racun.Oib = invoice.uredjaj_id.prostor_id.spec[2:]  #OIB IT firme 
+        else:
+            pass #TODO Error
+                   
+         
         a.racun.DatVrijeme = dat_vrijeme #invoice.vrijeme_izdavanja
         a.racun.OznSlijed = invoice.prostor_id.sljed_racuna #'P' ## sljed_racuna
 
         #dijelovi broja racuna
         BrojOznRac, OznPosPr, OznNapUr = invoice.number.rsplit('/',2)
-        BrOznRac =''
+        BrOznRac = ''
         for b in ''.join([x for x in BrojOznRac[::-1]]): #reverse
             if b.isdigit() :BrOznRac += b                #
             else: break                                  #break on 1. non digit
@@ -190,7 +198,7 @@ class account_invoice(osv.Model):
         a.racun.IznosUkupno = fiskal_num2str(invoice.amount_total)
         
         a.racun.NacinPlac = invoice.nac_plac
-        a.racun.OibOper = invoice.fiskal_user_id.OIB[2:]  #"57699704120"
+        a.racun.OibOper = invoice.fiskal_user_id.oib[2:]  #"57699704120"
         
         if not invoice.zki:
             a.racun.NakDost = "false"  ##TODO rutina koja provjerava jel prvi puta ili ponovljeno sranje!
@@ -253,25 +261,4 @@ class account_invoice(osv.Model):
 account_invoice()
 
 
-
-class account_move(osv.osv):
-    _inherit = 'account.move'
-
-    def post(self, cr, uid, ids, context=None):
-        if context is None:
-            context = {}
-        res = super(account_move,self).post(cr, uid, ids, context)
-        if res:
-            invoice = context.get('invoice', False)
-            if not invoice:
-                return res #TODO Check posting from accounting
-            if not invoice.type in ('out_invoice', 'out_refund'): 
-                return res #samo izlazne racune fiskaliziramo
-            fiskalni_sufiks = '/'.join( (invoice.uredjaj_id.prostor_id.oznaka_prostor, invoice.uredjaj_id.oznaka_uredjaj))
-            for move in self.browse(cr, uid, ids):
-                new_name =  '/'.join( (move.name, fiskalni_sufiks) ) 
-                self.write(cr, uid, [move.id], {'name':new_name})
-                self.pool.get('account.invoice').fiskaliziraj(cr, uid, invoice.id, context)
-        return res
-    
     

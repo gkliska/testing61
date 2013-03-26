@@ -30,6 +30,26 @@ import datetime
 import uuid
 from fiskal import *
 
+class res_users(osv.osv):
+    _inherit = "res.users"
+    _columns = {
+        'oib': fields.char('OIB osobe', size=13, help='OIB osobe koja potvrdjuje racune za potrebe fiskalizacije'),
+        ##7.0
+        #'OIB': fields.related('partner_id','vat', string='OIB osobe' ), # relation='res.partner'
+        }
+res_users()
+
+class res_company(osv.osv):
+    _inherit = "res.company"
+    _columns = {
+        'fina_certifikat_id': fields.many2one('crypto.certificate', string="Fiskal certifikat",
+            domain="[('cert_type', 'in', ('fina_demo','fina_prod') )]", #todo company_id
+            help="Aktivni FINA certifikat za fiskalizaciju.",
+            ),    
+        'fiskal_prostor_ids': fields.one2many('fiskal.prostor','company_id', string="Poslovni prostori",
+            help="Poslovni prostori (fiskalizacija).",
+            ),    
+    }
 
 class fiskal_prostor(osv.Model):
     _name = 'fiskal.prostor'
@@ -295,65 +315,30 @@ class fiskal_uredjaj(osv.Model):
         'prostor_id':fields.many2one('fiskal.prostor','Prostor',help='Prostor naplatnog uredjaja.'),
         'oznaka_uredjaj': fields.integer('Oznaka naplatnog uredjaja', required="True" ),
                 }
-    
-class users(osv.osv):
-    _inherit = "res.users"
-    _columns = {
-        'OIB': fields.char('OIB osobe', size=13, help='OIB osobe koja potvrdjuje racune za potrebe fiskalizacije'),
-        ##7.0
-        #'OIB': fields.related('partner_id','vat', string='OIB osobe' ), # relation='res.partner'
-        ##'number': fields.related('move_id','name', type='char', readonly=True, size=64, relation='account.move', store=True, string='Number'),
-        
-        }
 
-class account_tax_code(osv.osv):
-    _inherit = 'account.tax.code'
-
-    def _get_fiskal_type(self,cursor,user_id, context=None):
-        return [('pdv','Pdv'),
-                ('pnp','Porez na potrosnju'),
-                ('ostali','Ostali porezi'),
-                ('oslobodenje','Oslobodjenje'),
-                ('marza','Oporezivanje marze'),
-                ('ne_podlijeze','Ne podlijeze oporezivanju'),
-                ('naknade','Naknade (npr. ambalaza)'),
-               ]
-
-    _columns = {
-        'fiskal_percent': fields.char('Porezna stopa', size=128 , help='Porezna stopa za potrebe fiskalizacije. Primjer: 25.00'),
-        'fiskal_type':fields.selection(_get_fiskal_type, 'Vrsta poreza',help='Vrsta porezne grupe za potrebe fiskalizacije.'),
-                }
-
-
-    
-""" TODO
-class l10n_hr_log(osv.Model):
-    _name='l10n.hr.log'
-    _description='Official communicatins log'    
+class fiskal_log(osv.Model):
+    _name='fiskal.log'
+    _description='Fiskal log'    
     
     def _get_log_type(self,cursor,user_id, context=None):
-        return (('prostor','Prijava Prostora'),
+        return (('prostor_prijava','Prijava Prostora'),
+                ('prostor_odjava','Prijava Prostora'),
                 ('racun','Fiskalizacija racuna'),
-                ('echo','Echo test message '),
-                ('other','Other types ->TODO')
+                ('racun_ponovo','Ponovljeno slanje racuna'),
+                ('echo','Echo test poruka '),
+                ('other','Other types')
                )
     _columns ={
-        'name': fields.char('Oznaka', size=128, help="Jedinstvena oznaka komunikacije "),
-        'type': fields.selection (_get_log_type,'Log message Type'),
-        'sadrzaj':fields.text('Message context'),
-        'odgovor':fields.text('Message reply'),
+        'name': fields.text('Oznaka', help="Jedinstvena oznaka komunikacije "),
+        'type': fields.selection (_get_log_type,'Vrsta poruke'),
+        'invoice_id': fields.many2one('account.invoice', "Racun"),
+        'fiskal_prostor_id': fields.many2one('fiskal.prostor', "P.prostor"),
+        'sadrzaj':fields.text('Poslana poruka'),
+        'odgovor':fields.text('Odgovor'),
+        'greska':fields.text('Greska'),
         'timestamp':fields.datetime('TimeStamp'),
         'time_obr':fields.char('Time for response',size=16,help='Vrijeme obrade podataka'), #vrijeme obrade prmljeno_vrijeme-poslano_vrijem
-        #'l10n_hr_fis_pprostor_id':fields.many2one('l10n_hr_fis_pprostor','l10n_hr_fis_pprostor_log_id','Prostor'),
         'origin_id':fields.integer('Origin'), # id dokumenta sa kojeg dolazi.. za prostor i za racun, echo ne koristi.
-        #'users_id':fields.many2one('res.users', 'User') ## ovo cak i netreba obzirom na create i write uide !!
         'user_id': fields.many2one('res.users', 'User',readonly=False),
- 
-        }
-l10n_hr_log()
-
-"""
-
-
-
+    }
 
